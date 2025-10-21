@@ -13,7 +13,7 @@ async function resolveDomain(domain) {
         const response = await fetch(`https://dns.google/resolve?name=${domain}&type=A`);
         const data = await response.json();
         if (data.Answer) {
-            return data.Answer.map(ans => ans.data);
+            return data.Answer.map(ans => ans.data).filter(ip => /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip));
         }
         return [];
     } catch (error) {
@@ -21,28 +21,6 @@ async function resolveDomain(domain) {
     }
 }
 
-async function checkSslStatus(domain) {
-    try {
-        const response = await fetch(`https://api.dev.serhan.net/ssl-check?domain=${domain}`);
-        const data = await response.json();
-        if (data.days_remaining) {
-            return {
-                'SSL Durumu': '✔️ AKTİF',
-                'Kalan Gün': data.days_remaining
-            };
-        } else {
-            return {
-                'SSL Durumu': '❌ PASİF/HATA',
-                'Kalan Gün': 'N/A'
-            };
-        }
-    } catch (error) {
-        return {
-            'SSL Durumu': '❌ PASİF/HATA',
-            'Kalan Gün': 'N/A'
-        };
-    }
-}
 
 async function checkDomains() {
     let results = [];
@@ -50,7 +28,6 @@ async function checkDomains() {
     for (const domain of domainList) {
         const nonWwwA = await resolveDomain(domain);
         const wwwA = await resolveDomain(`www.${domain}`);
-        const sslStatus = await checkSslStatus(domain);
 
         const nonWwwSet = new Set(nonWwwA);
         const wwwSet = new Set(wwwA);
@@ -72,9 +49,7 @@ async function checkDomains() {
             'Alan Adı': domain,
             'Non-WWW IP': nonWwwA.join(', ') || 'YOK',
             'WWW IP': wwwA.join(', ') || 'YOK',
-            'Uyum Kontrolü': uyumKontroluMetni,
-            'SSL Durumu': sslStatus['SSL Durumu'],
-            'Kalan Gün': sslStatus['Kalan Gün']
+            'Uyum Kontrolü': uyumKontroluMetni
         });
 
         renderTable(results);
@@ -83,7 +58,7 @@ async function checkDomains() {
 
 function renderTable(results) {
     let table = '<table>';
-    table += '<tr><th>Alan Adı</th><th>Non-WWW IP</th><th>WWW IP</th><th>Uyum Kontrolü</th><th>SSL Durumu</th><th>Kalan Gün</th></tr>';
+    table += '<tr><th>Alan Adı</th><th>Non-WWW IP</th><th>WWW IP</th><th>Uyum Kontrolü</th></tr>';
 
     for (const item of results) {
         table += `<tr>`;
@@ -91,8 +66,6 @@ function renderTable(results) {
         table += `<td>${item['Non-WWW IP']}</td>`;
         table += `<td>${item['WWW IP']}</td>`;
         table += `<td>${item['Uyum Kontrolü']}</td>`;
-        table += `<td>${item['SSL Durumu']}</td>`;
-        table += `<td>${item['Kalan Gün']}</td>`;
         table += `</tr>`;
     }
 
