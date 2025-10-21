@@ -169,5 +169,6 @@ for item in results:
         item['SSL Durumu'],
         item['Kalan Gün']
     ))
+    print("---" * 95) # Zebra efekti için ayırıcı
 
 print("\n(Lütfen aynı klasördeki Excel dosyasını kontrol edin.)")
