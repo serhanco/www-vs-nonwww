@@ -1,11 +1,3 @@
-const domainList = [
-    "acibademinternational.com", "acibadem.al", "acibadem.ar", "acibadem.rs", 
-    "acibadem.fr", "acibadem.bg", "acibadem.com.ru", "acibadem.ba", 
-    "acibadem.mk", "acibadem.com.de", "acibadem.hr", "acibadem.ge", 
-    "acibadem.com.ro", "acibadem.ir", "acibadem.com.az", "acibadem.ua",
-    "acibadem.ae" 
-];
-
 const resultsContainer = document.getElementById('results');
 
 async function resolveDomain(domain) {
@@ -22,10 +14,10 @@ async function resolveDomain(domain) {
 }
 
 
-async function checkDomains() {
+async function checkDomains(domains) {
     let results = [];
 
-    for (const domain of domainList) {
+    for (const domain of domains) {
         const nonWwwA = await resolveDomain(domain);
         const wwwA = await resolveDomain(`www.${domain}`);
 
@@ -73,4 +65,10 @@ function renderTable(results) {
     resultsContainer.innerHTML = table;
 }
 
-checkDomains();
+document.getElementById('domainCheckerForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const domainListText = document.getElementById('domainList').value;
+    const domains = domainListText.split('\n').map(domain => domain.trim()).filter(domain => domain !== '');
+    resultsContainer.innerHTML = 'Checking domains...';
+    await checkDomains(domains);
+});

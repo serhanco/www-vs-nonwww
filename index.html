@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNS and SSL Checker</title>
+    <title>ASGUHM DNS (A Record) Checker</title>
     <style>
         body { font-family: sans-serif; }
         table { border-collapse: collapse; width: 100%; }
@@ -12,7 +12,27 @@
     </style>
 </head>
 <body>
-    <h1>DNS and SSL Checker</h1>
+    <h1>ASGUHM DNS (A Record) Checker</h1>
+    <form id="domainCheckerForm">
+        <textarea id="domainList" rows="10" cols="50" placeholder="Enter domains, one per line">acibademinternational.com
+acibadem.al
+acibadem.ar
+acibadem.rs
+acibadem.fr
+acibadem.bg
+acibadem.com.ru
+acibadem.ba
+acibadem.mk
+acibadem.com.de
+acibadem.hr
+acibadem.ge
+acibadem.com.ro
+acibadem.ir
+acibadem.com.az
+acibadem.ua
+acibadem.ae</textarea><br>
+        <button type="submit">Check Domains</button>
+    </form>
     <div id="results"></div>
     <script src="script.js"></script>
 </body>
