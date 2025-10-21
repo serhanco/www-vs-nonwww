@@ -45,13 +45,33 @@ async function checkDomains(domains) {
             uyumKontroluMetni = "🚨 FARKLI IP'ler";
         }
 
+        // CNAME kayıtlarını formatla
+        let cnameDisplay;
+        if (cnameRecords.length === 0 || (cnameRecords.length === 1 && cnameRecords[0].startsWith('HATA:'))) {
+            cnameDisplay = 'YOK';
+        } else {
+            cnameDisplay = cnameRecords.map(record => 
+                record.startsWith('HATA:') ? `❌ ${record}` : `🔗 ${record}`
+            ).join('<br>');
+        }
+
+        // TXT kayıtlarını formatla
+        let txtDisplay;
+        if (txtRecords.length === 0 || (txtRecords.length === 1 && txtRecords[0].startsWith('HATA:'))) {
+            txtDisplay = 'YOK';
+        } else {
+            txtDisplay = txtRecords.map(record => 
+                record.startsWith('HATA:') ? `❌ ${record}` : `📄 ${record}`
+            ).join('<br>');
+        }
+
         results.push({
             'Alan Adı': domain,
             'Non-WWW IP': nonWwwA.join(', ') || 'YOK',
             'WWW IP': wwwA.join(', ') || 'YOK',
             'Uyum Kontrolü': uyumKontroluMetni,
-            'CNAME': cnameRecords.join(', ') || 'YOK', // Use <br> for TXT for better readability
-            'TXT': txtRecords.join('<br>') || 'YOK' // Use <br> for TXT for better readability
+            'CNAME': cnameDisplay,
+            'TXT': txtDisplay
         });
 
         renderTable(results);
