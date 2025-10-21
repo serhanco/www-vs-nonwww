@@ -1,25 +1,33 @@
 const resultsContainer = document.getElementById('results');
 
-async function resolveDomain(domain) {
+async function resolveDnsRecord(domain, type) {
     try {
-        const response = await fetch(`https://dns.google/resolve?name=${domain}&type=A`);
+        const response = await fetch(`https://dns.google/resolve?name=${domain}&type=${type}`);
         const data = await response.json();
         if (data.Answer) {
-            return data.Answer.map(ans => ans.data).filter(ip => /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip));
+            if (type === 'A') {
+                return data.Answer.map(ans => ans.data).filter(ip => /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip));
+            } else if (type === 'TXT') {
+                // TXT records can contain multiple strings, often quoted. Remove quotes.
+                return data.Answer.map(ans => ans.data.replace(/"/g, ''));
+            }
+            return data.Answer.map(ans => ans.data);
         }
         return [];
     } catch (error) {
+        // Return a single error string in an array for consistency with success cases
         return [`HATA: ${error.message}`];
     }
 }
-
 
 async function checkDomains(domains) {
     let results = [];
 
     for (const domain of domains) {
-        const nonWwwA = await resolveDomain(domain);
-        const wwwA = await resolveDomain(`www.${domain}`);
+        const nonWwwA = await resolveDnsRecord(domain, 'A');
+        const wwwA = await resolveDnsRecord(`www.${domain}`, 'A');
+        const cnameRecords = await resolveDnsRecord(domain, 'CNAME');
+        const txtRecords = await resolveDnsRecord(domain, 'TXT');
 
         const nonWwwSet = new Set(nonWwwA);
         const wwwSet = new Set(wwwA);
@@ -41,7 +49,9 @@ async function checkDomains(domains) {
             'Alan Adı': domain,
             'Non-WWW IP': nonWwwA.join(', ') || 'YOK',
             'WWW IP': wwwA.join(', ') || 'YOK',
-            'Uyum Kontrolü': uyumKontroluMetni
+            'Uyum Kontrolü': uyumKontroluMetni,
+            'CNAME': cnameRecords.join(', ') || 'YOK', // Use <br> for TXT for better readability
+            'TXT': txtRecords.join('<br>') || 'YOK' // Use <br> for TXT for better readability
         });
 
         renderTable(results);
@@ -50,7 +60,7 @@ async function checkDomains(domains) {
 
 function renderTable(results) {
     let table = '<table>';
-    table += '<tr><th>Alan Adı</th><th>Non-WWW IP</th><th>WWW IP</th><th>Uyum Kontrolü</th></tr>';
+    table += '<tr><th>Alan Adı</th><th>Non-WWW IP</th><th>WWW IP</th><th>Uyum Kontrolü</th><th>CNAME</th><th>TXT</th></tr>';
 
     for (const item of results) {
         table += `<tr>`;
@@ -58,6 +68,8 @@ function renderTable(results) {
         table += `<td>${item['Non-WWW IP']}</td>`;
         table += `<td>${item['WWW IP']}</td>`;
         table += `<td>${item['Uyum Kontrolü']}</td>`;
+        table += `<td>${item['CNAME']}</td>`;
+        table += `<td>${item['TXT']}</td>`;
         table += `</tr>`;
     }
 
